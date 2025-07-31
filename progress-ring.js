@@ -105,6 +105,20 @@ class ProgressRing extends HTMLElement {
 		opacity: 0;
 		pointer-events: none;
 	}
+	@media (max-width: 500px) {
+		:host {
+			flex-direction: column;
+			align-items: stretch;
+			gap: 20px;
+		}
+		svg {
+			margin: 0 auto;
+		}
+		.controls {
+			width: 100%;
+			align-items: center;
+		}
+	}
 </style>
 <div class="container">
 	<svg class="progress-ring">
