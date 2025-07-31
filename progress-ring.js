@@ -10,17 +10,20 @@ class ProgressRing extends HTMLElement {
 		display: flex;
 		font-family: Roboto, sans-serif;
 		gap: 40px;
-		align-items: center;
+		align-items: flex-start;
+		flex-wrap: wrap;
+		justify-content: center;
 	}
 	.container {
-		display: flex;
-		flex-direction: column;
-		gap: 30px;
-	}
-	svg {
+		position: relative;
 		width: 200px;
 		height: 200px;
+	}
+	svg {
+		width: 100%;
+		height: 100%;
 		transform: rotate(-90deg);
+		transition: opacity 0.3s ease;
 	}
 	.progress-ring__bg {
 		fill: none;
@@ -45,13 +48,12 @@ class ProgressRing extends HTMLElement {
 			transform: rotate(360deg);
 		}
 	}
-
 	.controls {
 		display: flex;
 		flex-direction: column;
 		gap: 20px;
+		min-width: 220px;
 	}
-
 	.field {
 		display: flex;
 		align-items: center;
@@ -82,49 +84,32 @@ class ProgressRing extends HTMLElement {
 	}
 	.checkbox {
 		background: rgb(197, 205, 220);
-		padding: 4px;
+		padding: 3px;
 		position: relative;
 		cursor: pointer;
+		transition: background 0.3s ease;
 		-webkit-tap-highlight-color: transparent;
-	}
-	input:focus, .checkbox:focus {
-		outline: none;
 	}
 	.checkbox.active {
 		background: #006aff;
 	}
 	.checkbox-circle {
-		width: 42px;
-		height: 42px;
+		aspect-ratio: 1/1;
+		height: calc(100% - 6px);
 		background: white;
 		border-radius: 50%;
 		position: absolute;
-		top: 4px;
-		left: 4px;
+		top: 3px;
+		left: 3px;
 		transition: left 0.3s ease;
 	}
 	.checkbox-circle.right {
-		left: calc(100% - 46px);
+		left: calc(100% - 47px);
 	}
-	.hidden {
+	svg.hidden {
 		opacity: 0;
-		visibility: hidden;
 		pointer-events: none;
-	}
-
-	@media (max-width: 500px) {
-		:host {
-			flex-direction: column;
-			align-items: stretch;
-			gap: 20px;
-		}
-		svg {
-			margin: 0 auto;
-		}
-		.controls {
-			width: 100%;
-			align-items: center;
-		}
+		position: absolute;
 	}
 </style>
 <div class="container">
@@ -155,19 +140,18 @@ class ProgressRing extends HTMLElement {
 
 		const ring = shadow.querySelector('.progress-ring__value');
 		const input = shadow.querySelector('input[type=number]');
-		const animate = shadow.querySelector('.animate-checkbox');
-		const animateDot = shadow.querySelector(
-			'.animate-checkbox .checkbox-circle'
-		);
-		const hide = shadow.querySelector('.hide-checkbox');
-		const hideDot = shadow.querySelector('.hide-checkbox .checkbox-circle');
+		const animateBox = shadow.querySelector('.animate-checkbox');
+		const animateDot = animateBox.querySelector('.checkbox-circle');
+		const hideBox = shadow.querySelector('.hide-checkbox');
+		const hideDot = hideBox.querySelector('.checkbox-circle');
 		const svg = shadow.querySelector('svg');
 
 		let progress = 0;
 		const circleLength = 2 * Math.PI * 80;
 
-		const setProgress = (val) => {
-			ring.style.strokeDashoffset = circleLength * (1 - val / 100);
+		const updateProgress = (val) => {
+			const offset = circleLength * (1 - val / 100);
+			ring.style.strokeDashoffset = offset;
 		};
 
 		input.addEventListener('input', () => {
@@ -178,24 +162,22 @@ class ProgressRing extends HTMLElement {
 			if (+val < 0) val = 0;
 			input.value = val;
 			progress = +val;
-			if (!ring.classList.contains('animated')) {
-				setProgress(progress);
-			} else {
-				ring.style.strokeDashoffset = circleLength * (1 - progress / 100);
+			updateProgress(progress);
+		});
+
+		animateBox.addEventListener('click', () => {
+			const active = animateBox.classList.toggle('active');
+			animateDot.classList.toggle('right', active);
+			ring.classList.toggle('animated', active);
+			if (!active) {
+				updateProgress(progress);
 			}
 		});
 
-		animate.addEventListener('click', () => {
-			const isOn = animate.classList.toggle('active');
-			animateDot.classList.toggle('right', isOn);
-			ring.classList.toggle('animated', isOn);
-			if (!isOn) setProgress(progress);
-		});
-
-		hide.addEventListener('click', () => {
-			const isHidden = hide.classList.toggle('active');
-			hideDot.classList.toggle('right', isHidden);
-			svg.classList.toggle('hidden', isHidden);
+		hideBox.addEventListener('click', () => {
+			const active = hideBox.classList.toggle('active');
+			hideDot.classList.toggle('right', active);
+			svg.classList.toggle('hidden', active);
 		});
 	}
 }
